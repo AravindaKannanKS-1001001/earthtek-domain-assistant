@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "fix/*", "feat/*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check types
+        run: pnpm check-types
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NO_HTTPS: "1"
+          POSTGRES_URL: "postgresql://postgres:postgres@localhost:5432/test"
+          BETTER_AUTH_SECRET: "test-secret-value-32-chars-long-min"
+          BETTER_AUTH_URL: "http://localhost:3000"

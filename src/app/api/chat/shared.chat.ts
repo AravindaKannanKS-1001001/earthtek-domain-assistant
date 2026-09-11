@@ -131,8 +131,23 @@ export function manualToolExecuteByLastMessage(
     .map(({ confirm, args }) => {
       if (!confirm) return MANUAL_REJECT_RESPONSE_PROMPT;
       // User-approved args win over the model's original proposal.
-      const input =
-        args && typeof args === "object" ? args : originalInput;
+      const input = args && typeof args === "object" ? args : originalInput;
+
+      // Validate input arguments against tool parameters / input schema if available
+      const schema = (tool as any)?.parameters ?? (tool as any)?.inputSchema;
+      if (schema) {
+        if (typeof schema.safeParse === "function") {
+          const validation = schema.safeParse(input);
+          if (!validation.success) {
+            throw new Error(
+              `Invalid arguments for tool ${toolName}: ${errorToString(validation.error)}`,
+            );
+          }
+        } else if (typeof schema.parse === "function") {
+          schema.parse(input);
+        }
+      }
+
       if (VercelAIWorkflowToolTag.isMaybe(tool)) {
         return tool.execute!(input, {
           toolCallId: part.toolCallId,
@@ -445,8 +460,10 @@ export const loadAppDefaultTools = (opt?: {
           return { ...acc, ...allowed };
         }, {});
       }
-      const allowedAppDefaultToolkit =
-        opt?.allowedAppDefaultToolkit ?? Object.values(AppDefaultToolkit);
+      const permittedToolkits: string[] = [AppDefaultToolkit.Visualization];
+      const allowedAppDefaultToolkit = (
+        opt?.allowedAppDefaultToolkit ?? permittedToolkits
+      ).filter((tk) => permittedToolkits.includes(tk));
 
       return (
         allowedAppDefaultToolkit.reduce(

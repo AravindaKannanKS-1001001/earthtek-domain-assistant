@@ -199,9 +199,7 @@ if (process.env.AI_PROVIDER_API_KEY && _aiProvider) {
 }
 
 const fallbackModel =
-  (_aiProvider &&
-    _aiModel &&
-    (allModels as any)[_aiProvider]?.[_aiModel]) ||
+  (_aiProvider && _aiModel && (allModels as any)[_aiProvider]?.[_aiModel]) ||
   staticModels.openai["gpt-4.1"];
 
 export const customModelProvider = {

@@ -43,13 +43,12 @@ import {
   rememberMcpServerCustomizationsAction,
 } from "./actions";
 import { getSession } from "auth/server";
+import { toDomainRole, rolePolicy, decideTool, MAX_RETRIES } from "lib/policy";
 import {
-  toDomainRole,
-  rolePolicy,
-  decideTool,
-  MAX_RETRIES,
-} from "lib/policy";
-import { claimDailyRequest, recordUsage, QuotaExceededError } from "lib/policy/usage";
+  claimDailyRequest,
+  recordUsage,
+  QuotaExceededError,
+} from "lib/policy/usage";
 import { VercelAIMcpToolTag } from "app-types/mcp";
 import { colorize } from "consola/utils";
 import { generateUUID } from "lib/utils";
@@ -216,12 +215,14 @@ export async function POST(request: Request) {
       mentions.push(...agent.instructions.mentions);
     }
 
-    const useImageTool = Boolean(imageTool?.model);
+    const useImageTool = Boolean(imageTool?.model) && policy.autonomousMcpTools;
 
     const isToolCallAllowed =
       supportToolCall &&
       (toolChoice != "none" || mentions.length > 0) &&
-      !useImageTool;
+      !useImageTool &&
+      policy.autonomousMcpTools &&
+      policy.maxToolSteps > 0;
 
     const metadata: ChatMetadata = {
       agentId: agent?.id,

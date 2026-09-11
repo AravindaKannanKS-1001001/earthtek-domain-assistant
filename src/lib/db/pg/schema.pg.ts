@@ -392,7 +392,9 @@ export const UsageDailyTable = pgTable(
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     estimatedCost: doublePrecision("estimated_cost").notNull().default(0),
-    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (t) => [unique().on(t.userId, t.date)],
 );

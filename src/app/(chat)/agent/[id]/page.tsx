@@ -2,6 +2,7 @@ import EditAgent from "@/components/agent/edit-agent";
 import { agentRepository } from "lib/db/repository";
 import { getSession } from "auth/server";
 import { notFound, redirect } from "next/navigation";
+import { toDomainRole } from "lib/policy";
 
 export default async function AgentPage({
   params,
@@ -13,6 +14,11 @@ export default async function AgentPage({
 
   if (!session?.user.id) {
     redirect("/sign-in");
+  }
+
+  const domainRole = toDomainRole(session.user.role);
+  if (domainRole !== "employee") {
+    notFound();
   }
 
   // For new agents, pass no initial data

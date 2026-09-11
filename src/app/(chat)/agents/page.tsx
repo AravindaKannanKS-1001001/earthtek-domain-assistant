@@ -2,6 +2,7 @@ import { agentRepository } from "lib/db/repository";
 import { getSession } from "auth/server";
 import { notFound } from "next/navigation";
 import { AgentsList } from "@/components/agent/agents-list";
+import { toDomainRole } from "lib/policy";
 
 // Force dynamic rendering to avoid static generation issues with session
 export const dynamic = "force-dynamic";
@@ -10,6 +11,11 @@ export default async function AgentsPage() {
   const session = await getSession();
 
   if (!session?.user.id) {
+    notFound();
+  }
+
+  const domainRole = toDomainRole(session.user.role);
+  if (domainRole !== "employee") {
     notFound();
   }
 

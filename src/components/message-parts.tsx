@@ -783,14 +783,18 @@ export const ToolMessagePart = memo(
       () => (editableArgs ? { ...editableArgs, ...argOverrides } : undefined),
       [editableArgs, argOverrides],
     );
-    const setArg = useCallback((key: string, raw: string, wasNumber: boolean) => {
-      setArgOverrides((prev) => ({
-        ...prev,
-        [key]: wasNumber && raw.trim() !== "" && !isNaN(Number(raw))
-          ? Number(raw)
-          : raw,
-      }));
-    }, []);
+    const setArg = useCallback(
+      (key: string, raw: string, wasNumber: boolean) => {
+        setArgOverrides((prev) => ({
+          ...prev,
+          [key]:
+            wasNumber && raw.trim() !== "" && !isNaN(Number(raw))
+              ? Number(raw)
+              : raw,
+        }));
+      },
+      [],
+    );
 
     // Handle keyboard shortcuts for approve/reject actions
     useEffect(() => {
@@ -1124,13 +1128,13 @@ export const ToolMessagePart = memo(
                           <input
                             className="w-full rounded-md border bg-background px-2 py-1 text-xs"
                             defaultValue={
-                              isObj ? JSON.stringify(value) : String(value ?? "")
+                              isObj
+                                ? JSON.stringify(value)
+                                : String(value ?? "")
                             }
                             inputMode={isNum ? "decimal" : "text"}
                             disabled={isObj}
-                            onChange={(e) =>
-                              setArg(key, e.target.value, isNum)
-                            }
+                            onChange={(e) => setArg(key, e.target.value, isNum)}
                           />
                         </label>
                       );

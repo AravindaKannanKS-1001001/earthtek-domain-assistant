@@ -6,6 +6,7 @@ import Workflow from "@/components/workflow/workflow";
 import { getSession } from "auth/server";
 import { workflowRepository } from "lib/db/repository";
 import { notFound, redirect } from "next/navigation";
+import { toDomainRole } from "lib/policy";
 
 export default async function WorkflowPage({
   params,
@@ -17,6 +18,11 @@ export default async function WorkflowPage({
 
   if (!session) {
     redirect("/sign-in");
+  }
+
+  const domainRole = toDomainRole(session.user.role);
+  if (domainRole !== "employee") {
+    redirect("/");
   }
 
   const hasAccess = await workflowRepository.checkAccess(id, session.user.id);
